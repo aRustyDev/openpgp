@@ -6,14 +6,18 @@ set unstable := true
 keys := `op item list --tags openpgp --format json  2>/dev/null | jq '[.[] | {id:.id, vault:.vault.id}]'`
 well_known := ".well-known/openpgpkey"
 
+# Update WKD keys with all configured in 1Password
 [unix]
 default: mktree
     #!/usr/bin/env bash
+    rm -rf "$well_known/*"
     jq -n -c --argjson k '{{ keys }}' '$k[]' | while read i; do
         vault=$(echo "$i" | jq -r '.vault')
         item=$(echo "$i" | jq -r '.id')
         just gen-wkd-hash "$vault" "$item"
     done
+    just policy
+    just cloudflare
     just clean
 
 [unix]
@@ -36,7 +40,13 @@ gen-wkd-hash vault item: clean
 mktree:
     #!/usr/bin/env bash
     mkdir -p .well-known/openpgpkey/hu
+
+policy:
+    #!/usr/bin/env bash
     touch .well-known/openpgpkey/policy
+
+cloudflare:
+    #!/usr/bin/env bash
     # Create headers file for Cloudflare Pages
     cat > _headers << 'EOF'
     /.well-known/openpgpkey/*
