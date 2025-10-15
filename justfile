@@ -39,7 +39,7 @@ gen-wkd-hash vault item: clean
 [unix]
 mktree:
     #!/usr/bin/env bash
-    mkdir -p .well-known/openpgpkey/hu
+    mkdir -p .well-known/openpgpkey/
 
 policy:
     #!/usr/bin/env bash
